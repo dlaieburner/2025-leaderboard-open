@@ -1,4 +1,4 @@
-## Sample submission file for the VAE + Flow leaderboard challenge
+## Sample submission file for the VAE + Flow leaderboard challenge 
 ## Author: Scott H. Hawley, Oct 6 2025.    
 import torch
 import torch.nn as nn
