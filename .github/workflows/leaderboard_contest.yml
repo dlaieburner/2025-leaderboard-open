@@ -41,16 +41,16 @@ jobs:
     - name: Identify submission file
       id: find_submission
       run: |
-        # The base.sha is now available locally for the comparison
-        SUBMISSION_FILE=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | grep 'submissions/.*\.py' | head -n 1)
+        # Compare HEAD (the PR content) with the merge base of the PR (where 'main' was when the PR was created).
+        SUBMISSION_FILE=$(git diff --name-only HEAD^! | grep 'submissions/.*\.py' | head -n 1)
         if [ -z "$SUBMISSION_FILE" ]; then
           echo "No valid submission file found in the PR. Exiting."
           exit 1
         fi
-        
+
         # Export SUBMISSION_FILE path
         echo "SUBMISSION_FILE=$SUBMISSION_FILE" >> $GITHUB_OUTPUT
-        
+
         # Calculate TEAM_NAME and EXPORT it
         TEAM_NAME=$(basename $SUBMISSION_FILE .py | sed 's/submissions\///')
         echo "TEAM_NAME=$TEAM_NAME" >> $GITHUB_OUTPUT
