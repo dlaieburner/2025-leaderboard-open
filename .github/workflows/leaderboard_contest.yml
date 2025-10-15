@@ -41,13 +41,21 @@ jobs:
           echo "No valid submission file found in the PR. Exiting."
           exit 1
         fi
+        
+        # Export SUBMISSION_FILE path
         echo "SUBMISSION_FILE=$SUBMISSION_FILE" >> $GITHUB_OUTPUT
+        
+        # Calculate TEAM_NAME and EXPORT it for the next step (FIXED)
+        TEAM_NAME=$(basename $SUBMISSION_FILE .py | sed 's/submissions\///')
+        echo "TEAM_NAME=$TEAM_NAME" >> $GITHUB_OUTPUT 
 
     - name: Evaluate submission (PR metrics only)
       # Run the evaluation script, outputting to a temporary file not committed to the repo
       run: |
-        TEAM_NAME=$(basename ${{ steps.find_submission.outputs.SUBMISSION_FILE }} .py)
-        python evaluate_submission.py --submission ${{ steps.find_submission.outputs.SUBMISSION_FILE }} --output-csv pr_metrics/${{ TEAM_NAME }}.csv
+        # Use the exported output variables from the previous step (FIXED)
+        python evaluate_submission.py \
+        --submission ${{ steps.find_submission.outputs.SUBMISSION_FILE }} \
+        --output-csv pr_metrics/${{ steps.find_submission.outputs.TEAM_NAME }}.csv
         
     - name: Post metrics as PR comment
       uses: marocchino/sticky-pull-request-comment@v2
