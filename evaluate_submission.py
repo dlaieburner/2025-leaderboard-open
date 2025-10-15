@@ -169,6 +169,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Evaluate a submission model.")
     # we'll do teamname_submission.py.  so "sample" isn't really a team, it's just an example.
     parser.add_argument('--submission', type=str, default='sample_submission.py', help='Path to the submission file.')
+    parser.add_argument('--output-csv', type=str, default='submissions_full.csv', help="Output csv file (appends to or creates)")
     args = parser.parse_args()
 
     submission_file = args.submission
@@ -350,7 +351,7 @@ if __name__ == "__main__":
     time_stamp = time.strftime("%Y%m%d-%H%M%S")
 
     # append to submissions_full.csv file
-    csv_file = 'submissions_full.csv'
+    csv_file = args.args.output_csv # 'submissions_full.csv'
     print("Appending results to", csv_file)
     write_header = not os.path.exists(csv_file)
     # with open(csv_file, 'a') as f:
