@@ -244,39 +244,43 @@ if __name__ == "__main__":
         print(f"Sample generation took {gen_time:.6f} seconds, {metrics['time_per_sample']*1000:.4f} ms/sample.")
 
 
-    # evaluate generated samples...
-
-    # Use pretrained "deep" ResNet from lesson 06b to evaluate generated images 
-    deep_resnet = ResNet(blocks_per_level=4).to(device)
-    resnet_weights_file = 'downloaded_resnet.safetensors'
-    if not os.path.exists(resnet_weights_file):
-        shareable_link = "https://drive.google.com/file/d/1kW_wnq-J_41_ESyQUX1PJD9-vvbWbCQ8/view?usp=sharing"
-        gdown.download(shareable_link, resnet_weights_file, quiet=False, fuzzy=True)
-    deep_resnet.load_state_dict(load_file(resnet_weights_file))
-    if len(samples.shape) < 4: samples = samples.unsqueeze(1)  # add channel dim
-
-    logits = deep_resnet(samples)
-    probs = F.softmax(logits, dim=1)
-    entropy = -torch.sum(probs * torch.log(probs + 1e-8), dim=1)  # add small value to avoid log(0)
-    avg_entropy = entropy.mean().item()
-    print(f"Avg. predictive entropy of gen'd samples (lower is better) ↓: {avg_entropy:.4f}")
-    metrics['entropy'] = avg_entropy  
-
-
-    # more stuff... (work in progress)  
-
-    # statistical comparisons between distibutions of ground truth images & gen'd images:
-    # get mnist test images, use random choice but without duplicate indices
-    random_indices = np.random.choice(len(mnist_test), size=gen_batch_size, replace=False)
-    real_images = torch.stack([mnist_test[i][0] for i in random_indices]).to(device)
-
-    real_logits = deep_resnet(real_images)
-    real_probs = F.softmax(real_logits, dim=1)
-    real_entropy = -torch.sum(real_probs * torch.log(real_probs + 1e-8), dim=1)
-    avg_real_entropy = real_entropy.mean().item()
-    print(f"Avg. predictive entropy of real  samples (lower is better) ↓: {avg_real_entropy:.4f}")
-    metrics['real_entropy'] = avg_real_entropy
-
+        # evaluate generated samples...
+    
+        # Use pretrained "deep" ResNet from lesson 06b to evaluate generated images 
+        print("Loaing classifier...") 
+        deep_resnet = ResNet(blocks_per_level=4).to(device)
+        deep_resnet.eval()
+        resnet_weights_file = 'downloaded_resnet.safetensors'
+        if not os.path.exists(resnet_weights_file):
+            print("Downloading resnet weights..") 
+            shareable_link = "https://drive.google.com/file/d/1kW_wnq-J_41_ESyQUX1PJD9-vvbWbCQ8/view?usp=sharing"
+            gdown.download(shareable_link, resnet_weights_file, quiet=False, fuzzy=True)
+        deep_resnet.load_state_dict(load_file(resnet_weights_file))
+        if len(samples.shape) < 4: samples = samples.unsqueeze(1)  # add channel dim
+    
+        print("Evaluating deep_resnet(samples)...")
+        logits = deep_resnet(samples)
+        probs = F.softmax(logits, dim=1)
+        entropy = -torch.sum(probs * torch.log(probs + 1e-8), dim=1)  # add small value to avoid log(0)
+        avg_entropy = entropy.mean().item()
+        print(f"Avg. predictive entropy of gen'd samples (lower is better) ↓: {avg_entropy:.4f}")
+        metrics['entropy'] = avg_entropy  
+    
+    
+        # more stuff... (work in progress)  
+    
+        # statistical comparisons between distibutions of ground truth images & gen'd images:
+        # get mnist test images, use random choice but without duplicate indices
+        random_indices = np.random.choice(len(mnist_test), size=gen_batch_size, replace=False)
+        real_images = torch.stack([mnist_test[i][0] for i in random_indices]).to(device)
+        print("Running resnet on real images...") 
+        real_logits = deep_resnet(real_images)
+        real_probs = F.softmax(real_logits, dim=1)
+        real_entropy = -torch.sum(real_probs * torch.log(real_probs + 1e-8), dim=1)
+        avg_real_entropy = real_entropy.mean().item()
+        print(f"Avg. predictive entropy of real  samples (lower is better) ↓: {avg_real_entropy:.4f}")
+        metrics['real_entropy'] = avg_real_entropy
+    
 
 
 
