@@ -32,7 +32,7 @@ jobs:
     - name: Install uv dependencies
       run: |
         pip install uv
-        uv pip install -r requirements.txt
+        uv pip install --system -r requirements.txt
 
     - name: Identify submission file
       id: find_submission
@@ -88,7 +88,7 @@ jobs:
     - name: Install uv and dependencies
       run: |
         pip install uv
-        uv pip install -r requirements.txt
+        uv pip install --system -r requirements.txt
 
     - name: Identify new submissions to evaluate
       id: new_files
