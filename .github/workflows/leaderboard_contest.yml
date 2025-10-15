@@ -20,8 +20,10 @@ jobs:
     steps:
     - uses: actions/checkout@v4
       with:
-        # Check out the PR's head branch
-        ref: ${{ github.event.pull_request.head.ref }} 
+        # Check out the head branch of the PR from its source repository (the fork)
+        # This is the most reliable way to get the fork's commit history.
+        ref: ${{ github.event.pull_request.head.sha }}
+        repository: ${{ github.event.pull_request.head.repo.full_name }}
         fetch-depth: 0
 
     # NEW STEP: Fetch the base branch history so git diff can compare the two SHAs
