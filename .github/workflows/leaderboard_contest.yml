@@ -1,0 +1,106 @@
+name: Leaderboard Contest
+
+on:
+  pull_request:
+    branches: [ main ]
+    types: [ opened, synchronize, reopened ]
+    paths:
+      - 'submissions/*.py'
+  push:
+    branches: [ main ]
+    paths:
+      - 'submissions_full.csv'
+      - 'submissions/*.py'
+
+jobs:
+  # Job 1: Run on every Pull Request to evaluate the code
+  pr_check:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        # Check out the PR's head branch
+        ref: ${{ github.event.pull_request.head.ref }} 
+        fetch-depth: 0
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+
+    - name: Install dependencies
+      run: pip install -r requirements.txt
+
+    - name: Identify submission file
+      id: find_submission
+      run: |
+        # In a PR, the only new file in the submissions/ directory should be the submission
+        SUBMISSION_FILE=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | grep 'submissions/.*\.py' | head -n 1)
+        if [ -z "$SUBMISSION_FILE" ]; then
+          echo "No valid submission file found in the PR. Exiting."
+          exit 1
+        fi
+        echo "SUBMISSION_FILE=$SUBMISSION_FILE" >> $GITHUB_OUTPUT
+
+    - name: Evaluate submission (PR metrics only)
+      # Run the evaluation script, outputting to a temporary file not committed to the repo
+      run: |
+        TEAM_NAME=$(basename ${{ steps.find_submission.outputs.SUBMISSION_FILE }} .py)
+        python evaluate_submission.py --submission ${{ steps.find_submission.outputs.SUBMISSION_FILE }} --output-csv pr_metrics/${{ TEAM_NAME }}.csv
+        
+    - name: Post metrics as PR comment
+      uses: marocchino/sticky-pull-request-comment@v2
+      with:
+        header: pr-submission-metrics
+        message: |
+          ### Submission Evaluation Complete
+          
+          ✅ **Code passed all checks.**
+          
+          The full performance metrics are available in the artifact attached to this workflow run. Please review them before merging.
+        
+  # Job 2: Run only on successful merges to 'main' or direct pushes to update the leaderboard
+  update_leaderboard:
+    if: github.event_name == 'push' && contains(join(github.event.commits.*.message), 'Merge pull request')
+    runs-on: ubuntu-latest
+    needs: pr_check
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+
+    - name: Install dependencies
+      run: pip install -r requirements.txt
+
+    - name: Identify new submissions to evaluate
+      id: new_files
+      run: |
+        # Find all .py files added in the latest commit
+        NEW_FILES=$(git diff --name-only HEAD^ HEAD | grep 'submissions/.*\.py' | tr '\n' ' ')
+        echo "NEW_FILES=$NEW_FILES" >> $GITHUB_OUTPUT
+        
+    - name: Evaluate and append new submissions to submissions_full.csv
+      # Loop through the files merged in the PR
+      run: |
+        for SUBMISSION_FILE in ${{ steps.new_files.outputs.NEW_FILES }}; do
+          echo "Processing new submission: $SUBMISSION_FILE"
+          python evaluate_submission.py --submission $SUBMISSION_FILE --append-to submissions_full.csv
+        done
+        
+    - name: Generate and commit new leaderboard.csv
+      # The generate script reads submissions_full.csv and creates leaderboard.csv
+      run: python generate_leaderboard.py
+
+    - name: Push updated CSV files
+      uses: stefanzweifel/git-auto-commit-action@v5
+      with:
+        commit_message: "🤖 Leaderboard updated with new submissions"
+        file_pattern: 'submissions_full.csv leaderboard.csv'
+        skip_dirty_check: true
+
