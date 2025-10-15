@@ -24,20 +24,24 @@ jobs:
         ref: ${{ github.event.pull_request.head.ref }} 
         fetch-depth: 0
 
+    # NEW STEP: Fetch the base branch history so git diff can compare the two SHAs
+    - name: Fetch base branch for diff
+      run: git fetch origin ${{ github.event.pull_request.base.ref }}
+
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
         python-version: '3.11'
 
-    - name: Install uv dependencies
+    - name: Install uv and dependencies
       run: |
         pip install uv
         uv pip install --system -r requirements.txt
-
+        
     - name: Identify submission file
       id: find_submission
       run: |
-        # In a PR, the only new file in the submissions/ directory should be the submission
+        # The base.sha is now available locally for the comparison
         SUBMISSION_FILE=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | grep 'submissions/.*\.py' | head -n 1)
         if [ -z "$SUBMISSION_FILE" ]; then
           echo "No valid submission file found in the PR. Exiting."
@@ -47,9 +51,9 @@ jobs:
         # Export SUBMISSION_FILE path
         echo "SUBMISSION_FILE=$SUBMISSION_FILE" >> $GITHUB_OUTPUT
         
-        # Calculate TEAM_NAME and EXPORT it for the next step (FIXED)
+        # Calculate TEAM_NAME and EXPORT it
         TEAM_NAME=$(basename $SUBMISSION_FILE .py | sed 's/submissions\///')
-        echo "TEAM_NAME=$TEAM_NAME" >> $GITHUB_OUTPUT 
+        echo "TEAM_NAME=$TEAM_NAME" >> $GITHUB_OUTPUT
 
     - name: Evaluate submission (PR metrics only)
       # Run the evaluation script, outputting to a temporary file not committed to the repo
