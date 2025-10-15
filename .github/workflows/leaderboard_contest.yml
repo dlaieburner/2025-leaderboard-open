@@ -29,8 +29,10 @@ jobs:
       with:
         python-version: '3.11'
 
-    - name: Install dependencies
-      run: pip install -r requirements.txt
+    - name: Install uv dependencies
+      run: |
+        pip install uv
+        uv pip install -r requirements.txt
 
     - name: Identify submission file
       id: find_submission
@@ -83,8 +85,10 @@ jobs:
       with:
         python-version: '3.11'
 
-    - name: Install dependencies
-      run: pip install -r requirements.txt
+    - name: Install uv and dependencies
+      run: |
+        pip install uv
+        uv pip install -r requirements.txt
 
     - name: Identify new submissions to evaluate
       id: new_files
