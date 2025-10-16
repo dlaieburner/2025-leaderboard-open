@@ -98,6 +98,16 @@ jobs:
           ```
           
           </details>
+          
+    # Step 9: Save updated CSV files as artifacts for manual review
+    - name: 9. Save Leaderboard Artifacts for Approval
+      uses: actions/upload-artifact@v4
+      with:
+        name: updated-leaderboard-files
+        path: |
+          submissions_full.csv
+          leaderboard.csv
+        retention-days: 7 # Files are stored for 7 days
         
   # Job 2: Run only on successful merges to 'main' or direct pushes to update the leaderboard
   update_leaderboard:
