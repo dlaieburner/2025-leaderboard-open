@@ -28,36 +28,24 @@ jobs:
     - name: 2. Inject Submission File from Fork
       id: fetch_submission
       run: |
-        # 1. Construct the repository URL securely
-        REPO_URL="https://github.com/${{ github.event.pull_request.head.repo.full_name }}"
+        # ... (all previous DEBUG and variable assignment lines remain the same)
 
-        echo "--- DEBUG START ---"
-        echo "REPO_URL: $REPO_URL"
-        echo "BASE_SHA: ${{ github.event.pull_request.base.sha }}"
-        echo "HEAD_SHA: ${{ github.event.pull_request.head.sha }}"
-        
-        # 2. Fetch the head commit using the shell variable
-        git fetch "$REPO_URL" "${{ github.event.pull_request.head.sha }}"
-        
         # 3. CRITICAL: Use awk/tr to reliably extract and clean the filename.
-        # FIX: Added '\r' to tr command to eliminate DOS/Windows line endings.
         SUBMISSION_FILE=$(git ls-tree --name-only -r FETCH_HEAD | awk '/submissions\/.*\.py$/ {print; exit}' | tr -d '\n\r')
 
         echo "SUBMISSION_FILE (found): '$SUBMISSION_FILE'"
-        
-        # 🛑 DEBUG CHECK: If the variable is empty, exit with a clear message.
+
         if [ -z "$SUBMISSION_FILE" ]; then
-            echo "::error::SUBMISSION FILE NOT FOUND. git ls-tree failed to locate a *.py file in submissions/."
-            echo "Ensure your submission file is at the root of the 'submissions/' directory in the PR."
+            # ... (error check remains the same)
             exit 1
         fi
-        
-        # This line should now work perfectly as the variable is clean and checked.
-        echo "Attempting git show: FETCH_HEAD:$SUBMISSION_FILE > \"$SUBMISSION_FILE\""
-        git show FETCH_HEAD:$SUBMISSION_FILE > "$SUBMISSION_FILE"
+
+        # 🛑 CRITICAL FIX: Use 'tee' to reliably write the file content, bypassing shell redirection issues.
+        echo "Attempting git show with tee: FETCH_HEAD:$SUBMISSION_FILE | tee \"$SUBMISSION_FILE\""
+        git show FETCH_HEAD:$SUBMISSION_FILE | tee "$SUBMISSION_FILE" > /dev/null
         echo "File injection successful."
         echo "--- DEBUG END ---"
-        
+
         echo "SUBMISSION_FILE=$SUBMISSION_FILE" >> $GITHUB_OUTPUT
         TEAM_NAME=$(basename "$SUBMISSION_FILE" .py | sed 's/submissions\///')
         echo "TEAM_NAME=$TEAM_NAME" >> $GITHUB_OUTPUT
