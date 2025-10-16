@@ -12,8 +12,8 @@ on:
       - 'submissions_full.csv'
       - 'submissions/*.py'
 
+# Job 1: Run on every Pull Request to evaluate the code
 jobs:
-  # Job 1: Run on every Pull Request to evaluate the code
   pr_check:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
