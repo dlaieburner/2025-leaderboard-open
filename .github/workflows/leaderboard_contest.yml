@@ -28,14 +28,13 @@ jobs:
     - name: 2. Inject Submission File from Fork
       id: fetch_submission
       run: |
-        # Construct the repository URL securely
+        # 1. Construct the repository URL securely
         REPO_URL="https://github.com/${{ github.event.pull_request.head.repo.full_name }}"
 
-        # Fetch the head commit using the shell variable
+        # 2. Fetch the head commit using the shell variable
         git fetch "$REPO_URL" "${{ github.event.pull_request.head.sha }}"
         
-        # 🛑 CRITICAL FIX: Use git ls-tree to list all files in the fetched commit's history.
-        # This reliably finds the submission file, bypassing problematic git diff behavior.
+        # 3. Use git ls-tree to list all files in the fetched commit's history.
         SUBMISSION_FILE=$(git ls-tree --name-only -r FETCH_HEAD | grep 'submissions/.*\.py' | head -n 1)
 
         if [ -z "$SUBMISSION_FILE" ]; then
@@ -43,14 +42,12 @@ jobs:
             exit 1
         fi
         
-        # NOTE: Directory should exist due to the .gitkeep file now.
-        # git show FETCH_HEAD:path/to/file > path/to/file
-        git show FETCH_HEAD:$SUBMISSION_FILE > $SUBMISSION_FILE
+        # 🛑 CRITICAL FIX: Quote the output target to prevent shell error from invisible characters
+        git show FETCH_HEAD:$SUBMISSION_FILE > "$SUBMISSION_FILE"
         
         echo "SUBMISSION_FILE=$SUBMISSION_FILE" >> $GITHUB_OUTPUT
         TEAM_NAME=$(basename $SUBMISSION_FILE .py | sed 's/submissions\///')
         echo "TEAM_NAME=$TEAM_NAME" >> $GITHUB_OUTPUT
-
 
     # Step 3: Set up Python
     - name: 3. Set up Python
