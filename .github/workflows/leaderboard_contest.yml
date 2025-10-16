@@ -103,7 +103,7 @@ jobs:
           
           </details>
           
-    # Step 11: Create Approval PR 
+    # Step 11: Create Approval PR for Leaderboard Update
     - name: 11. Create Approval PR for Leaderboard Update
       uses: peter-evans/create-pull-request@v5
       with:
@@ -113,6 +113,11 @@ jobs:
         base: ${{ github.event.pull_request.base.ref }}
         # Unique branch to create with the changes
         branch: auto/update-leaderboard-${{ github.event.pull_request.number }}
+        
+        # 🛑 CRITICAL FIX: Explicitly set committer/author to the bot identity
+        committer: GitHub <noreply@github.com>
+        author: ${{ github.actor }} <${{ github.actor }}@users.noreply.github.com>
+
         # Files to commit
         commit-message: "🤖 Feat: Leaderboard update for submission #${{ github.event.pull_request.number }}"
         title: "🤖 Leaderboard Update Ready for Manual Approval"
