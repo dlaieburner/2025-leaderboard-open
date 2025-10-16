@@ -230,7 +230,7 @@ if __name__ == "__main__":
     metrics['ssim'] = ssim_avg
 
     # flow model generation
-    gen_batch_size = min(256, len(mnist_test))  # don't exceed test set size
+    gen_batch_size = min(2048, len(mnist_test))  # don't exceed test set size
     print(f"\nGenerating {gen_batch_size} samples from flow model...")
     with torch.no_grad():
         start = time.time()

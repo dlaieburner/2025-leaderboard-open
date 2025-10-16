@@ -12,9 +12,13 @@ on:
 # Job 1: Run on every Pull Request to evaluate the code
 jobs:
   pr_check:
+    permissions:
+      pull-requests: write
+      contents: write
+
     if: github.event_name == 'pull_request_target'
     runs-on: ubuntu-latest
-    timeout-minutes: 7
+    timeout-minutes: 5
     steps:
 
     # Step 1: Checkout Main Branch (Authoritative Content)
