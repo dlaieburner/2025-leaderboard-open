@@ -11,31 +11,30 @@ on:
 
 # Job 1: Run on every Pull Request to evaluate the code
 jobs:
-  pr_check:
-    if: github.event_name == 'pull_request_target'
-    runs-on: ubuntu-latest
-    timeout-minutes: 7
-    steps:
+  pr_check:
+    if: github.event_name == 'pull_request_target'
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
 
-    # 1. Checkout Main Branch (Authoritative Content)
-    # This downloads all the correct scripts and requirements files (like evaluate_submission.py and ci_requirements.txt)
-    - name: 1. Checkout Main Branch
-      uses: actions/checkout@v4
-      with:
-        ref: ${{ github.event.pull_request.base.sha }} 
-        fetch-depth: 0
+    # Step 1: Checkout Main Branch (Authoritative Content)
+    - name: 1. Checkout Main Branch
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.pull_request.base.sha }} 
+        fetch-depth: 0
 
-    # 2. Identify and Inject Submission File from Fork
+    # Step 2: Inject Submission File from Fork
     - name: 2. Inject Submission File from Fork
       id: fetch_submission
       run: |
-        # 1. Construct the repository URL securely using a shell variable
+        # Construct the repository URL securely
         REPO_URL="https://github.com/${{ github.event.pull_request.head.repo.full_name }}"
 
-        # 2. Fetch the head commit using the shell variable
-        git fetch $REPO_URL ${{ github.event.pull_request.head.sha }}
+        # Fetch the head commit using the shell variable
+        git fetch "$REPO_URL" "${{ github.event.pull_request.head.sha }}"
         
-        # 3. Continue with the rest of the logic
+        # Continue with the rest of the logic
         SUBMISSION_FILE=$(git diff --name-only ${{ github.event.pull_request.base.sha }} FETCH_HEAD | grep 'submissions/.*\.py' | head -n 1)
 
         if [ -z "$SUBMISSION_FILE" ]; then
@@ -48,7 +47,7 @@ jobs:
         TEAM_NAME=$(basename $SUBMISSION_FILE .py | sed 's/submissions\///')
         echo "TEAM_NAME=$TEAM_NAME" >> $GITHUB_OUTPUT
 
-    # 3. Set up Python (continues after the injection)
+    # Step 3: Set up Python
     - name: 3. Set up Python
       uses: actions/setup-python@v5
       with:
@@ -57,14 +56,15 @@ jobs:
     - name: 4. Install uv
       run: pip install uv
       
-    # 5. Optimized Installation Steps (Fixes 4-minute download)
+    # Step 5: Install Standard Dependencies (Fast from PyPI)
     - name: 5. Install Standard Dependencies (Fast from PyPI)
       run: uv pip install -r ci_requirements.txt
       
+    # Step 6: Install PyTorch CPU-Only (Forced via Index)
     - name: 6. Install PyTorch CPU-Only (Forced via Index)
       run: uv pip install torch==2.8.0 torchvision==0.23.0 --index-url https://download.pytorch.org/whl/cpu
 
-    # 7. Run Evaluation Script (The final step)
+    # Step 7: Run Evaluation Script
     - name: 7. Run Evaluation Script
       run: python evaluate_submission.py --submission ${{ steps.fetch_submission.outputs.SUBMISSION_FILE }}
 
@@ -114,7 +114,7 @@ jobs:
       run: |
         for SUBMISSION_FILE in ${{ steps.new_files.outputs.NEW_FILES }}; do
           echo "Processing new submission: $SUBMISSION_FILE"
-          python evaluate_submission.py --submission $SUBMISSION_FILE --append-to submissions_full.csv
+          python evaluate_submission.py --submission "$SUBMISSION_FILE" --append-to submissions_full.csv
         done
         
     - name: Generate and commit new leaderboard.csv
