@@ -30,7 +30,7 @@ jobs:
     - name: 2. Inject Submission File from Fork
       id: fetch_submission
       run: |
-        git fetch ${{ github.event.pull_request.head.repo.full_name }} ${{ github.event.pull_request.head.sha }}
+        git fetch https://github.com/${{ github.event.pull_request.head.repo.full_name }} ${{ github.event.pull_request.head.sha }}
         SUBMISSION_FILE=$(git diff --name-only ${{ github.event.pull_request.base.sha }} FETCH_HEAD | grep 'submissions/.*\.py' | head -n 1)
 
         if [ -z "$SUBMISSION_FILE" ]; then
