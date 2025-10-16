@@ -31,24 +31,37 @@ jobs:
         # 1. Construct the repository URL securely
         REPO_URL="https://github.com/${{ github.event.pull_request.head.repo.full_name }}"
 
+        echo "--- DEBUG START ---"
+        echo "REPO_URL: $REPO_URL"
+        echo "BASE_SHA: ${{ github.event.pull_request.base.sha }}"
+        echo "HEAD_SHA: ${{ github.event.pull_request.head.sha }}"
+        
         # 2. Fetch the head commit using the shell variable
         git fetch "$REPO_URL" "${{ github.event.pull_request.head.sha }}"
         
         # 3. Use git ls-tree to list all files in the fetched commit's history.
-        # 🛑 CRITICAL FIX: Pipe through 'tr -d "\n"' to remove the trailing newline from the variable.
-        SUBMISSION_FILE=$(git ls-tree --name-only -r FETCH_HEAD | grep 'submissions/.*\.py' | head -n 1 | tr -d '\n')
+        # CRITICAL FIX: Use awk/tr to reliably extract and clean the filename.
+        SUBMISSION_FILE=$(git ls-tree --name-only -r FETCH_HEAD | awk '/submissions\/.*\.py$/ {print; exit}' | tr -d '\n')
 
+        echo "SUBMISSION_FILE (found): '$SUBMISSION_FILE'" # **Check for empty or weird characters here**
+        
+        # 🛑 DEBUG CHECK: If the variable is empty, exit with a clear message.
         if [ -z "$SUBMISSION_FILE" ]; then
-            echo "No valid submission file found in the PR. Exiting."
+            echo "::error::SUBMISSION FILE NOT FOUND. git ls-tree failed to locate a *.py file in submissions/."
+            echo "Ensure your submission file is at the root of the 'submissions/' directory in the PR."
             exit 1
         fi
         
-        # This line should now work perfectly as the variable is clean
+        # This line should now work perfectly as the variable is clean and checked.
+        echo "Attempting git show: FETCH_HEAD:$SUBMISSION_FILE > \"$SUBMISSION_FILE\""
         git show FETCH_HEAD:$SUBMISSION_FILE > "$SUBMISSION_FILE"
+        echo "File injection successful."
+        echo "--- DEBUG END ---"
         
         echo "SUBMISSION_FILE=$SUBMISSION_FILE" >> $GITHUB_OUTPUT
-        TEAM_NAME=$(basename $SUBMISSION_FILE .py | sed 's/submissions\///')
+        TEAM_NAME=$(basename "$SUBMISSION_FILE" .py | sed 's/submissions\///')
         echo "TEAM_NAME=$TEAM_NAME" >> $GITHUB_OUTPUT
+
 
     # Step 3: Set up Python
     - name: 3. Set up Python
