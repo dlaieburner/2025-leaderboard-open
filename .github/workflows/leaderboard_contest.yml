@@ -39,11 +39,11 @@ jobs:
         # 2. Fetch the head commit using the shell variable
         git fetch "$REPO_URL" "${{ github.event.pull_request.head.sha }}"
         
-        # 3. Use git ls-tree to list all files in the fetched commit's history.
-        # CRITICAL FIX: Use awk/tr to reliably extract and clean the filename.
-        SUBMISSION_FILE=$(git ls-tree --name-only -r FETCH_HEAD | awk '/submissions\/.*\.py$/ {print; exit}' | tr -d '\n')
+        # 3. CRITICAL: Use awk/tr to reliably extract and clean the filename.
+        # FIX: Added '\r' to tr command to eliminate DOS/Windows line endings.
+        SUBMISSION_FILE=$(git ls-tree --name-only -r FETCH_HEAD | awk '/submissions\/.*\.py$/ {print; exit}' | tr -d '\n\r')
 
-        echo "SUBMISSION_FILE (found): '$SUBMISSION_FILE'" # **Check for empty or weird characters here**
+        echo "SUBMISSION_FILE (found): '$SUBMISSION_FILE'"
         
         # 🛑 DEBUG CHECK: If the variable is empty, exit with a clear message.
         if [ -z "$SUBMISSION_FILE" ]; then
