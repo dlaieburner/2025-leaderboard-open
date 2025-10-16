@@ -26,22 +26,27 @@ jobs:
         fetch-depth: 0
 
     # 2. Identify and Inject Submission File from Fork
-    # This surgically extracts ONLY the submission file from the PR branch and places it into the main repo structure.
-    - name: 2. Inject Submission File from Fork
-      id: fetch_submission
-      run: |
-        git fetch 'https://github.com/${{ github.event.pull_request.head.repo.full_name }}' '${{ github.event.pull_request.head.sha }}'
-        SUBMISSION_FILE=$(git diff --name-only ${{ github.event.pull_request.base.sha }} FETCH_HEAD | grep 'submissions/.*\.py' | head -n 1)
+    - name: 2. Inject Submission File from Fork
+      id: fetch_submission
+      run: |
+        # 1. Construct the repository URL securely using a shell variable
+        REPO_URL="https://github.com/${{ github.event.pull_request.head.repo.full_name }}"
 
-        if [ -z "$SUBMISSION_FILE" ]; then
-            echo "No valid submission file found in the PR. Exiting."
-            exit 1
-        fi
-        
-        git show FETCH_HEAD:$SUBMISSION_FILE > $SUBMISSION_FILE
-        echo "SUBMISSION_FILE=$SUBMISSION_FILE" >> $GITHUB_OUTPUT
-        TEAM_NAME=$(basename $SUBMISSION_FILE .py | sed 's/submissions\///')
-        echo "TEAM_NAME=$TEAM_NAME" >> $GITHUB_OUTPUT
+        # 2. Fetch the head commit using the shell variable
+        git fetch $REPO_URL ${{ github.event.pull_request.head.sha }}
+        
+        # 3. Continue with the rest of the logic
+        SUBMISSION_FILE=$(git diff --name-only ${{ github.event.pull_request.base.sha }} FETCH_HEAD | grep 'submissions/.*\.py' | head -n 1)
+
+        if [ -z "$SUBMISSION_FILE" ]; then
+            echo "No valid submission file found in the PR. Exiting."
+            exit 1
+        fi
+        
+        git show FETCH_HEAD:$SUBMISSION_FILE > $SUBMISSION_FILE
+        echo "SUBMISSION_FILE=$SUBMISSION_FILE" >> $GITHUB_OUTPUT
+        TEAM_NAME=$(basename $SUBMISSION_FILE .py | sed 's/submissions\///')
+        echo "TEAM_NAME=$TEAM_NAME" >> $GITHUB_OUTPUT
 
     # 3. Set up Python (continues after the injection)
     - name: 3. Set up Python
