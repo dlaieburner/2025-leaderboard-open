@@ -72,7 +72,11 @@ jobs:
     - name: 7. Run Evaluation Script
       run: python evaluate_submission.py --submission ${{ steps.fetch_submission.outputs.SUBMISSION_FILE }}  2>&1 | tee metrics_output.txt 
 
-    - name: 7a. Prepare Comment Message
+    # Step 8: Generate leaderboard.csv from the updated submissions_full.csv
+    - name: 8. Generate Leaderboard CSV
+      run: python generate_leaderboard.py
+      
+    - name: 9. Prepare Comment Message
       id: prep_comment
       run: |
         # Read the file content and escape it for multi-line output
@@ -82,7 +86,7 @@ jobs:
         echo "$MESSAGE" >> $GITHUB_OUTPUT
         echo "EOF" >> $GITHUB_OUTPUT
         
-    - name: 8. Post metrics as PR comment
+    - name: 10. Post metrics as PR comment
       uses: marocchino/sticky-pull-request-comment@v2
       with:
         GITHUB_TOKEN: ${{ secrets.BOT_TOKEN }}
@@ -99,8 +103,8 @@ jobs:
           
           </details>
           
-    # Step 9: Save updated CSV files as artifacts for manual review
-    - name: 9. Save Leaderboard Artifacts for Approval
+    # Step 11: Save updated CSV files as artifacts for manual review
+    - name: 11. Save Leaderboard Artifacts for Approval
       uses: actions/upload-artifact@v4
       with:
         name: updated-leaderboard-files
