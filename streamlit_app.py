@@ -93,10 +93,10 @@ def display_leaderboard(use_streamlit=True):
         <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 20px;">
             <div style="flex: 1; min-width: 250px;">
                 <h4>
-                <a href="https://github.com/dlaieburner/2025-leaderboard-open/tree/main">Submit to this Leaderboard</a> |
-                <a href="https://2025-dlaie-leaderboard.streamlit.app/">Original Leaderboard</a> |
-                <a href="https://github.com/DLAIE/2025-LeaderboardContest">Original Contest Page</a> | 
-                <a href="https://github.com/drscotthawley/DLAIE">DLAIE Course Page</a></h4>
+                <div><a href="https://github.com/dlaieburner/2025-leaderboard-open/tree/main">Submit to this Leaderboard</a></div> |
+                <div><a href="https://2025-dlaie-leaderboard.streamlit.app/">Original Leaderboard</a></div> |
+                <div><a href="https://github.com/DLAIE/2025-LeaderboardContest">Original Contest Page</a></div> | 
+                <div><a href="https://github.com/drscotthawley/DLAIE">DLAIE Course Page</a></div></h4>
             </div>
             <div style="flex: 0 0 auto;">
                 <img src="https://raw.githubusercontent.com/dlaieburner/2025-leaderboard/refs/heads/main/flow_anim_3d.gif" height="120">
