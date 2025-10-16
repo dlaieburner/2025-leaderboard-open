@@ -70,18 +70,34 @@ jobs:
 
     # Step 7: Run Evaluation Script
     - name: 7. Run Evaluation Script
-      run: python evaluate_submission.py --submission ${{ steps.fetch_submission.outputs.SUBMISSION_FILE }}
+      run: python evaluate_submission.py --submission ${{ steps.fetch_submission.outputs.SUBMISSION_FILE }}  2>&1 | tee metrics_output.txt 
 
+    - name: 7a. Prepare Comment Message
+      id: prep_comment
+      run: |
+        # Read the file content and escape it for multi-line output
+        MESSAGE=$(cat metrics_output.txt)
+        # Set the content as an output variable for the next step
+        echo "comment_body<<EOF" >> $GITHUB_OUTPUT
+        echo "$MESSAGE" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+        
     - name: 8. Post metrics as PR comment
       uses: marocchino/sticky-pull-request-comment@v2
       with:
+        GITHUB_TOKEN: ${{ secrets.BOT_TOKEN }}
         header: pr-submission-metrics
         message: |
-          ### Submission Evaluation Complete
+          ### 🤖 Submission Evaluation Metrics
           
-          ✅ **Code passed all checks.**
+          <details>
+          <summary>Click to view full script output</summary>
           
-          The full performance metrics are available in the artifact attached to this workflow run. Please review them before merging.
+          ```
+          ${{ steps.prep_comment.outputs.comment_body }}
+          ```
+          
+          </details>
         
   # Job 2: Run only on successful merges to 'main' or direct pushes to update the leaderboard
   update_leaderboard:
