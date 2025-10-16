@@ -14,7 +14,7 @@ on:
 # Job 1: Run on every Pull Request to evaluate the code
 jobs:
   pr_check:
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request_target'
     runs-on: ubuntu-latest
     timeout-minutes: 7
     steps:
