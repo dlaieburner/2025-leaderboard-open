@@ -13,73 +13,60 @@ on:
       - 'submissions/*.py'
 
 jobs:
-  # Job 1: Run on every Pull Request to evaluate the code
-  pr_check:
-    if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    timeout-minutes: 7
-    steps:
-    - uses: actions/checkout@v4
-      with:
-        # Check out the head branch of the PR from its source repository (the fork)
-        # This is the most reliable way to get the fork's commit history.
-        ref: ${{ github.event.pull_request.head.sha }}
-        repository: ${{ github.event.pull_request.head.repo.full_name }}
-        fetch-depth: 0
+  # Job 1: Run on every Pull Request to evaluate the code
+  pr_check:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
 
-    - name: Sync Target Branch Files
-      run: |
-        # Fetch and checkout the authoritative main branch files
-        git fetch origin main
-        git checkout FETCH_HEAD -- evaluate_submission.py
-        echo "Successfully overlaid latest evaluate_submission.py from main branch."
+    # 1. Checkout Main Branch (Authoritative Content)
+    # This downloads all the correct scripts and requirements files (like evaluate_submission.py and ci_requirements.txt)
+    - name: 1. Checkout Main Branch
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.pull_request.base.sha }} 
+        fetch-depth: 0
 
-    - name: Fetch base branch for diff
-      run: git fetch origin ${{ github.event.pull_request.base.ref }}
+    # 2. Identify and Inject Submission File from Fork
+    # This surgically extracts ONLY the submission file from the PR branch and places it into the main repo structure.
+    - name: 2. Inject Submission File from Fork
+      id: fetch_submission
+      run: |
+        git fetch ${{ github.event.pull_request.head.repo.full_name }} ${{ github.event.pull_request.head.sha }}
+        SUBMISSION_FILE=$(git diff --name-only ${{ github.event.pull_request.base.sha }} FETCH_HEAD | grep 'submissions/.*\.py' | head -n 1)
 
-    - name: Set up Python
+        if [ -z "$SUBMISSION_FILE" ]; then
+            echo "No valid submission file found in the PR. Exiting."
+            exit 1
+        fi
+        
+        git show FETCH_HEAD:$SUBMISSION_FILE > $SUBMISSION_FILE
+        echo "SUBMISSION_FILE=$SUBMISSION_FILE" >> $GITHUB_OUTPUT
+        TEAM_NAME=$(basename $SUBMISSION_FILE .py | sed 's/submissions\///')
+        echo "TEAM_NAME=$TEAM_NAME" >> $GITHUB_OUTPUT
+
+    # 3. Set up Python (continues after the injection)
+    - name: 3. Set up Python
       uses: actions/setup-python@v5
       with:
         python-version: '3.11'
-
-    - name: Install uv and dependencies
-      run: |
-        pip install uv
-        uv pip install --system -r ci_requirements.txt
-
-    - name:  Install PyTorch CPU-Only 
+        
+    - name: 4. Install uv
+      run: pip install uv
+      
+    # 5. Optimized Installation Steps (Fixes 4-minute download)
+    - name: 5. Install Standard Dependencies (Fast from PyPI)
+      run: uv pip install -r ci_requirements.txt
+      
+    - name: 6. Install PyTorch CPU-Only (Forced via Index)
       run: uv pip install torch==2.8.0 torchvision==0.23.0 --index-url https://download.pytorch.org/whl/cpu
-        
-    - name: Identify submission file
-      id: find_submission
-      run: |
-        # Use the specific SHA hashes from the GitHub event to define the diff range.
-        BASE_SHA=${{ github.event.pull_request.base.sha }}
-        HEAD_SHA=${{ github.event.pull_request.head.sha }}
 
-        SUBMISSION_FILE=$(git diff --name-only $BASE_SHA $HEAD_SHA | grep 'submissions/.*\.py' | head -n 1)
+    # 7. Run Evaluation Script (The final step)
+    - name: 7. Run Evaluation Script
+      run: python evaluate_submission.py --submission ${{ steps.fetch_submission.outputs.SUBMISSION_FILE }}
 
-        if [ -z "$SUBMISSION_FILE" ]; then
-          echo "No valid submission file found in the PR. Exiting."
-          exit 1
-        fi
-
-        # Export SUBMISSION_FILE path
-        echo "SUBMISSION_FILE=$SUBMISSION_FILE" >> $GITHUB_OUTPUT
-
-        # Calculate TEAM_NAME and EXPORT it
-        TEAM_NAME=$(basename $SUBMISSION_FILE .py | sed 's/submissions\///')
-        echo "TEAM_NAME=$TEAM_NAME" >> $GITHUB_OUTPUT
-
-    - name: Evaluate submission (PR metrics only)
-      # Run the evaluation script, outputting to a temporary file not committed to the repo
-      run: |
-        # Use the exported output variables from the previous step (FIXED)
-        python evaluate_submission.py \
-        --submission ${{ steps.find_submission.outputs.SUBMISSION_FILE }} \
-        --output-csv pr_metrics/${{ steps.find_submission.outputs.TEAM_NAME }}.csv
-        
-    - name: Post metrics as PR comment
+    - name: 8. Post metrics as PR comment
       uses: marocchino/sticky-pull-request-comment@v2
       with:
         header: pr-submission-metrics
