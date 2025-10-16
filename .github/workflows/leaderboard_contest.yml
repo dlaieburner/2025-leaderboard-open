@@ -28,20 +28,24 @@ jobs:
     - name: 2. Inject Submission File from Fork
       id: fetch_submission
       run: |
-        # 1. Clone the fork (read-only) into a temporary folder.
+        # 1. Ensure the destination directory exists.
+        mkdir -p submissions
+        
+        # 2. Clone the fork (read-only) into a temporary folder.
         git clone --depth 1 --branch ${{ github.event.pull_request.head.ref }} https://github.com/${{ github.event.pull_request.head.repo.full_name }} temp_repo
-
-        # 2. Find the file path using standard shell commands.
+        
+        # 3. Find the file path using standard shell commands.
         SUBMISSION_PATH=$(find temp_repo/submissions -name "*.py" | head -n 1)
 
-        # 3. Check for existence and error out cleanly.
+        # 4. Check for existence and error out cleanly.
         [ -z "$SUBMISSION_PATH" ] && echo "::error::File not found in temp_repo/submissions." && exit 1
-
-        # 4. Copy the file to the final destination and set the local variable.
+        
+        # 5. Copy the file to the final destination and set the local variable.
         cp "$SUBMISSION_PATH" submissions/$(basename "$SUBMISSION_PATH"); SUBMISSION_FILE="submissions/$(basename "$SUBMISSION_PATH")"
 
-        # 5. Set output variables for next steps.
+        # 6. Set output variables for next steps.
         echo "SUBMISSION_FILE=$SUBMISSION_FILE" >> $GITHUB_OUTPUT; echo "TEAM_NAME=$(basename "$SUBMISSION_FILE" .py | sed 's/submissions\///')" >> $GITHUB_OUTPUT
+
 
     # Step 3: Set up Python
     - name: 3. Set up Python
