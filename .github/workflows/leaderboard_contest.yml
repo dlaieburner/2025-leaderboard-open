@@ -45,7 +45,10 @@ jobs:
     - name: Install uv and dependencies
       run: |
         pip install uv
-        uv pip install --system -r requirements.txt
+        uv pip install --system -r ci_requirements.txt
+
+    - name:  Install PyTorch CPU-Only 
+      run: uv pip install torch==2.8.0 torchvision==0.23.0 --index-url https://download.pytorch.org/whl/cpu
         
     - name: Identify submission file
       id: find_submission
@@ -105,7 +108,10 @@ jobs:
     - name: Install uv and dependencies
       run: |
         pip install uv
-        uv pip install --system -r requirements.txt
+        uv pip install --system -r ci_requirements.txt
+
+    - name: Install PyTorch 
+      run: uv pip install torch==2.8.0 torchvision==0.23.0 --index-url https://download.pytorch.org/whl/cpu
 
     - name: Identify new submissions to evaluate
       id: new_files
