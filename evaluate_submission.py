@@ -355,7 +355,7 @@ if __name__ == "__main__":
     time_stamp = time.strftime("%Y%m%d-%H%M%S")
 
     # append to submissions_full.csv file
-    csv_file = args.args.output_csv # 'submissions_full.csv'
+    csv_file = args.output_csv # 'submissions_full.csv'
     print("Appending results to", csv_file)
     write_header = not os.path.exists(csv_file)
     # with open(csv_file, 'a') as f:
