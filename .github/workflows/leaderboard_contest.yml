@@ -35,14 +35,15 @@ jobs:
         git fetch "$REPO_URL" "${{ github.event.pull_request.head.sha }}"
         
         # 3. Use git ls-tree to list all files in the fetched commit's history.
-        SUBMISSION_FILE=$(git ls-tree --name-only -r FETCH_HEAD | grep 'submissions/.*\.py' | head -n 1)
+        # 🛑 CRITICAL FIX: Pipe through 'tr -d "\n"' to remove the trailing newline from the variable.
+        SUBMISSION_FILE=$(git ls-tree --name-only -r FETCH_HEAD | grep 'submissions/.*\.py' | head -n 1 | tr -d '\n')
 
         if [ -z "$SUBMISSION_FILE" ]; then
             echo "No valid submission file found in the PR. Exiting."
             exit 1
         fi
         
-        # 🛑 CRITICAL FIX: Quote the output target to prevent shell error from invisible characters
+        # This line should now work perfectly as the variable is clean
         git show FETCH_HEAD:$SUBMISSION_FILE > "$SUBMISSION_FILE"
         
         echo "SUBMISSION_FILE=$SUBMISSION_FILE" >> $GITHUB_OUTPUT
