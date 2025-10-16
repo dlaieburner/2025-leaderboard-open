@@ -90,19 +90,19 @@ def display_leaderboard(use_streamlit=True):
     st.title("🏆 2025 DLAIE Latent Flow Matching Leaderboard - Open Version")
 
     st.markdown('''This is the "open public version" of an in-class contest for Deep Learning & AI Ethics at Belmont University<br>
-        <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 20px;">
-            <div style="flex: 1; min-width: 250px;">
-                <h4 style="white-space: nowrap;">
-                <span><a href="https://github.com/dlaieburner/2025-leaderboard-open/tree/main">Submit to this Leaderboard</a></span> |
-                <span><a href="https://2025-dlaie-leaderboard.streamlit.app/">Original Leaderboard</a></span> |
-                <span><a href="https://github.com/DLAIE/2025-LeaderboardContest">Original Contest Page</a></span> | 
-                <span><a href="https://github.com/drscotthawley/DLAIE">DLAIE Course Page</a></span></h4>
-            </div>
-            <div style="flex: 0 0 auto;">
-                <img src="https://raw.githubusercontent.com/dlaieburner/2025-leaderboard/refs/heads/main/flow_anim_3d.gif" height="120">
-            </div>
+    <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 20px;">
+        <div style="flex: 1; min-width: 250px;">
+            <h4>
+                <div style="display: inline-block; white-space: nowrap;"><a href="https://github.com/dlaieburner/2025-leaderboard-open/tree/main">Submit to this Leaderboard</a> |</div>
+                <div style="display: inline-block; white-space: nowrap;"><a href="https://2025-dlaie-leaderboard.streamlit.app/">Original Leaderboard</a> |</div>
+                <div style="display: inline-block; white-space: nowrap;"><a href="https://github.com/DLAIE/2025-LeaderboardContest">Original Contest Page</a> |</div>
+                <div style="display: inline-block; white-space: nowrap;"><a href="https://github.com/drscotthawley/DLAIE">DLAIE Course Page</a></div>
+            </h4>
         </div>
-        ''', unsafe_allow_html=True)
+        <div style="flex: 0 0 auto;">
+            <img src="https://raw.githubusercontent.com/dlaieburner/2025-leaderboard/refs/heads/main/flow_anim_3d.gif" height="120">
+        </div>
+    </div>''', unsafe_allow_html=True)
 
     
     # Get latest submission time from the data
