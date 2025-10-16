@@ -21,7 +21,7 @@ jobs:
     - name: 1. Checkout Main Branch
       uses: actions/checkout@v4
       with:
-        ref: ${{ github.event.pull_request.base.sha }} 
+        ref: ${{ github.event.pull_request.base.ref }} 
         fetch-depth: 0
 
     # Step 2: Inject Submission File from Fork
