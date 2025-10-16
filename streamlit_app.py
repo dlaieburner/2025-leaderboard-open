@@ -92,7 +92,7 @@ def display_leaderboard(use_streamlit=True):
     st.markdown('''This is the "open public version" of an in-class contest for Deep Learning & AI Ethics at Belmont University<br>
         <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 20px;">
             <div style="flex: 1; min-width: 250px;">
-                <h4>
+                <h4 style="white-space: nowrap;">
                 <span><a href="https://github.com/dlaieburner/2025-leaderboard-open/tree/main">Submit to this Leaderboard</a></span> |
                 <span><a href="https://2025-dlaie-leaderboard.streamlit.app/">Original Leaderboard</a></span> |
                 <span><a href="https://github.com/DLAIE/2025-LeaderboardContest">Original Contest Page</a></span> | 
