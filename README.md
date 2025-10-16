@@ -18,12 +18,12 @@ First, create a **fork** of the main repository (`dlaieburner/2025-leaderboard-o
 ### 2. Prepare Your Submission File
 
 1.  Create a **new branch** in your forked repository for your submission (e.g., `git checkout -b my-new-submission`).
-2.  Create your Python submission file. Your file must contain the required model or function as specified in the contest rules.
+2.  Create your Python (.py) submission file. (If you have a notebook .ipynb file, convert it to .py via `jupytext` or Download from Colab/Jupyter). Your file must contain the required model or function as specified in the contest rules.
 3.  **Name Your File:** Your file name must be descriptive of your team or model, and it must be **unique** (e.g., `team-alpha.py` or `model-v3.py`).
 
 ### 3. Place the Submission File
 
-Place your newly created Python file **ONLY** in the **`submissions/`** folder of your new branch.
+Place your newly created Python (.py) file **ONLY** in the **`submissions/`** folder of your new branch.
 
 > ⚠️ **Important:** Do not modify any files outside of your new submission file.
 
