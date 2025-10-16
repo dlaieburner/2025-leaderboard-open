@@ -28,28 +28,30 @@ jobs:
     - name: 2. Inject Submission File from Fork
       id: fetch_submission
       run: |
-        # ... (all previous DEBUG and variable assignment lines remain the same)
+        # Fetch the head commit (the submission itself)
+        git fetch https://github.com/${{ github.event.pull_request.head.repo.full_name }} ${{ github.event.pull_request.head.sha }}
 
-        # 3. CRITICAL: Use awk/tr to reliably extract and clean the filename.
-        SUBMISSION_FILE=$(git ls-tree --name-only -r FETCH_HEAD | awk '/submissions\/.*\.py$/ {print; exit}' | tr -d '\n\r')
+        # 🛑 LINE 1: Use git checkout-index to copy the file from the object database to the filesystem.
+        git checkout-index --temp --prefix=temp_submission/ -f ${{ github.event.pull_request.head.sha }}:submissions/team-alpha.py
+        
+        # LINE 2: Use the standard 'find' command on the temporary directory to get the file path.
+        SUBMISSION_PATH=$(find temp_submission/ -type f -name "*.py" | head -n 1)
 
-        echo "SUBMISSION_FILE (found): '$SUBMISSION_FILE'"
-
-        if [ -z "$SUBMISSION_FILE" ]; then
-            # ... (error check remains the same)
+        if [ -z "$SUBMISSION_PATH" ]; then
+            echo "::error::File not found in temporary directory."
             exit 1
         fi
+        
+        # LINE 3: Copy the file from the temporary location to the final 'submissions/' folder.
+        cp "$SUBMISSION_PATH" submissions/$(basename "$SUBMISSION_PATH")
+        
+        # LINE 4: Set the output variable to the correct final path.
+        SUBMISSION_FILE="submissions/$(basename "$SUBMISSION_PATH")"
 
-        # 🛑 CRITICAL FIX: Use 'tee' to reliably write the file content, bypassing shell redirection issues.
-        echo "Attempting git show with tee: FETCH_HEAD:$SUBMISSION_FILE | tee \"$SUBMISSION_FILE\""
-        git show FETCH_HEAD:$SUBMISSION_FILE | tee "$SUBMISSION_FILE" > /dev/null
-        echo "File injection successful."
-        echo "--- DEBUG END ---"
-
+        # LINE 5: Pass the final path to the environment.
         echo "SUBMISSION_FILE=$SUBMISSION_FILE" >> $GITHUB_OUTPUT
         TEAM_NAME=$(basename "$SUBMISSION_FILE" .py | sed 's/submissions\///')
         echo "TEAM_NAME=$TEAM_NAME" >> $GITHUB_OUTPUT
-
 
     # Step 3: Set up Python
     - name: 3. Set up Python
