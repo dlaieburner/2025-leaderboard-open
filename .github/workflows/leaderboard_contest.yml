@@ -103,22 +103,22 @@ jobs:
           
           </details>
           
-    # Step 11: Create Approval PR for Leaderboard Update
+    # Step 10.5: Configure Git remote URL to use the BOT_TOKEN for authentication
+    - name: 10.5. Configure Git Remote URL
+      run: |
+        # Use the base repo name and inject the PAT directly into the HTTPS URL
+        REPO_URL="https://x-access-token:${{ secrets.BOT_TOKEN }}@github.com/${{ github.repository }}"
+        git remote set-url origin "$REPO_URL" 
+        
+    # Step 11: Create Approval PR (The action will now use the tokenized URL from 10.5)
     - name: 11. Create Approval PR for Leaderboard Update
       uses: peter-evans/create-pull-request@v5
       with:
-        # Use the powerful PAT for write access across PRs/branches
+        # We can remove the committer/author fields, as the action handles the commit, 
+        # and the tokenized URL handles the push authentication.
         token: ${{ secrets.BOT_TOKEN }} 
-        # Base branch to merge into (your main branch)
         base: ${{ github.event.pull_request.base.ref }}
-        # Unique branch to create with the changes
         branch: auto/update-leaderboard-${{ github.event.pull_request.number }}
-        
-        # 🛑 CRITICAL FIX: Explicitly set committer/author to the bot identity
-        committer: GitHub <noreply@github.com>
-        author: ${{ github.actor }} <${{ github.actor }}@users.noreply.github.com>
-
-        # Files to commit
         commit-message: "🤖 Feat: Leaderboard update for submission #${{ github.event.pull_request.number }}"
         title: "🤖 Leaderboard Update Ready for Manual Approval"
         body: |
@@ -127,7 +127,6 @@ jobs:
           **Action Required:** Please review the change to `submissions_full.csv` and `leaderboard.csv` and merge this PR to update the live leaderboard.
           
           **Original Submission PR:** #${{ github.event.pull_request.number }}
-        # Files that were modified
         add-paths: |
           submissions_full.csv
           leaderboard.csv
