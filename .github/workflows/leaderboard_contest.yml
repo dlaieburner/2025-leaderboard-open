@@ -58,11 +58,11 @@ jobs:
       
     # Step 5: Install Standard Dependencies (Fast from PyPI)
     - name: 5. Install Standard Dependencies (Fast from PyPI)
-      run: uv pip install -r ci_requirements.txt
+      run: uv pip install --system -r ci_requirements.txt
       
     # Step 6: Install PyTorch CPU-Only (Forced via Index)
     - name: 6. Install PyTorch CPU-Only (Forced via Index)
-      run: uv pip install torch==2.8.0 torchvision==0.23.0 --index-url https://download.pytorch.org/whl/cpu
+      run: uv pip install --system torch==2.8.0 torchvision==0.23.0 --index-url https://download.pytorch.org/whl/cpu
 
     # Step 7: Run Evaluation Script
     - name: 7. Run Evaluation Script
@@ -100,7 +100,7 @@ jobs:
         uv pip install --system -r ci_requirements.txt
 
     - name: Install PyTorch 
-      run: uv pip install torch==2.8.0 torchvision==0.23.0 --index-url https://download.pytorch.org/whl/cpu
+      run: uv pip install --system torch==2.8.0 torchvision==0.23.0 --index-url https://download.pytorch.org/whl/cpu
 
     - name: Identify new submissions to evaluate
       id: new_files
