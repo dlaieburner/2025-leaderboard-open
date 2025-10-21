@@ -18,7 +18,7 @@ First, create a **fork** of the main repository (`dlaieburner/2025-leaderboard-o
 ### 2. Prepare Your Submission File
 
 1.  Create a **new branch** in your forked repository for your submission (e.g., `git checkout -b my-new-submission`).
-2.  Create your Python (.py) submission file. (If you have a notebook .ipynb file, convert it to .py via `jupytext` or Export/Download from Colab/Jupyter). Your file must contain the required model or function as specified in the contest rules.
+2.  Create your Python (.py) submission file. (If you have a notebook .ipynb file, convert it to .py via `jupytext` or Export/Download from Colab/Jupyter). Your file must contain the required model or function as specified in the contest rules.  It is recommended that you modify the [sample_submission](https://github.com/dlaieburner/2025-leaderboard-open/blob/main/sample_submission.py) file, to include your own VAE and Flow model classes, and to provide shareable links to weights files posted to Google Drive in `.safetensors` format. 
 3.  **Name Your File:** Your file name must be descriptive of your team or model, and it must be **unique** (e.g., `team-alpha.py` or `model-v3.py`).
 
 ### 3. Place the Submission File
